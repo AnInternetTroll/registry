@@ -1,0 +1,11 @@
+{
+	"fmt": {
+		"options": {
+			"useTabs": true
+		}
+	},
+	"tasks": {
+		"test": "deno test --allow-read=./repos_test,.env.example --allow-write=./repos_test --allow-net=github.com --allow-env -- --env-file=.env.example",
+		"start": "deno run --allow-net --allow-write=./repos_main --allow-read=./repos_main --no-prompt --allow-env --watch"
+	}
+}
