@@ -12,3 +12,4 @@ export {
 export { contentType } from "https://deno.land/std@0.153.0/media_types/mod.ts";
 export { type MatchHandler, router } from "./sift.ts";
 export * as log from "https://deno.land/std@0.153.0/log/mod.ts";
+export { compare as compareVersions } from "https://deno.land/std@0.153.0/semver/mod.ts";

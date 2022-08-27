@@ -14,8 +14,10 @@ describe("module", () => {
 
 	beforeAll(async () => {
 		const body = {
-			url, name
+			url,
+			name,
 		};
+
 		const request = new Request(`${BASE_URL}/x`, {
 			method: "POST",
 			headers: {
@@ -61,10 +63,97 @@ export const VERSION = "0.153.0";
 		);
 	});
 
+	it("get non-existing file", async () => {
+		const request = new Request(`${BASE_URL}/x/${name}@0.153.0/asd`, {
+			headers: {
+				"Accept": "application/typescript",
+			},
+		});
+
+		const response = await handler(request);
+		assertEquals(
+			response.status,
+			404,
+		);
+	});
+
+	it("get non-existing git reference", async () => {
+		const request = new Request(`${BASE_URL}/x/${name}@asd/version.ts`, {
+			headers: {
+				"Accept": "application/typescript",
+			},
+		});
+
+		const response = await handler(request);
+		assertEquals(
+			response.status,
+			404,
+		);
+	});
+
+	it("get without specifying git reference", async () => {
+		const request = new Request(`${BASE_URL}/x/${name}/version.ts`, {
+			headers: {
+				"Accept": "application/typescript",
+			},
+			redirect: "manual",
+		});
+
+		const response = await handler(request);
+		assertEquals(
+			response.status,
+			302,
+		);
+
+		assertEquals(
+			"http://" + response.headers.get("Location"),
+			`${BASE_URL}/x/${name}@HEAD/version.ts`,
+		);
+	});
+
+	// it("get website", async () => {
+	// 	const request = new Request(`${BASE_URL}/x/${name}@0.153.0/mod.ts`, {
+	// 		headers: {
+	// 			"Accept": "text/html",
+	// 		},
+	// 	});
+	// 	const response = await handler(request);
+	// 	assertEquals(response.headers.get("Content-Type"), "text/html");
+	// });
+
+	it("update module", async () => {
+		const request = new Request(`${BASE_URL}/x/${name}`, {
+			headers: {
+				"Accept": "application/typescript",
+			},
+			method: "POST",
+			redirect: "manual",
+		});
+
+		const response = await handler(request);
+		assertEquals(
+			response.status,
+			302,
+		);
+
+		assertEquals(
+			"http://" + response.headers.get("Location"),
+			`${BASE_URL}/x/${name}`,
+		);
+	});
+
 	afterAll(async () => {
 		await Deno.remove(config.REPOS, {
 			recursive: true,
 		});
 	});
+});
 
+describe("module-errors", () => {
+	it("non-existing module", async () => {
+		const request = new Request(`${BASE_URL}/x/asd@123`);
+		const response = await handler(request);
+
+		assertEquals(response.status, 404);
+	});
 });

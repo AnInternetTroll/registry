@@ -14,7 +14,12 @@ export const path: MatchHandler = (
 	req,
 	match,
 ): Response | Promise<Response> => {
-	return serveFile(req, match);
+	if (req.method === "GET") return serveFile(req, match);
+	if (req.method === "POST") return updateModule(req, match);
+
+	throw new HttpError("Method not supported", {
+		status: 400,
+	});
 };
 
 const serveFile: MatchHandler = async (req, match) => {
@@ -23,22 +28,35 @@ const serveFile: MatchHandler = async (req, match) => {
 	const pathToRepo = join(config.REPOS, name) + ".git";
 
 	// If no version was specified
-	// Redirect to the latest tag
+	// Redirect to the latest commit
 	if (!version) {
-		const tags = await git.listTags({
-			fs,
-			dir: pathToRepo,
-			gitdir: pathToRepo,
-		});
-		let ref: string | undefined;
-		if (!tags.length) {
-			ref = await git.resolveRef({
-				fs,
-				dir: pathToRepo,
-				gitdir: pathToRepo,
-				ref: "HEAD",
-			});
-		} else ref = tags.at(-1);
+		const ref: string | undefined = "HEAD";
+
+		// This does not work
+		// Sorting tags is hard
+		// I think what you are meant to do is get each tag
+		// then `git show` and get it's date
+		// and sort by that
+		// But that is very expensive
+
+		// const tags = await git.listTags({
+		// 	fs,
+		// 	dir: pathToRepo,
+		// 	gitdir: pathToRepo,
+		// });
+
+		// if (!tags.length) {
+		// 	ref = await git.resolveRef({
+		// 		fs,
+		// 		dir: pathToRepo,
+		// 		gitdir: pathToRepo,
+		// 		ref: "HEAD",
+		// 	});
+		// } else {
+		// 	tags.sort(compareVersions);
+		// 	ref = tags.at(-1);
+		// }
+
 		return Response.redirect(`${url.host}/x/${name}@${ref}/${path}`);
 	}
 
@@ -57,16 +75,27 @@ const serveFile: MatchHandler = async (req, match) => {
 	}
 
 	if (!ref) {
-		if (!ref) throw new HttpError("Not found", { status: 404 });
+		throw new HttpError("Not found", { status: 404 });
 	}
 
-	const blob = await git.readBlob({
-		fs,
-		dir: pathToRepo,
-		gitdir: pathToRepo,
-		oid: ref,
-		filepath: path,
-	});
+	let blob;
+	try {
+		blob = await git.readBlob({
+			fs,
+			dir: pathToRepo,
+			gitdir: pathToRepo,
+			oid: ref,
+			filepath: path,
+		});
+	} catch (err) {
+		if (err instanceof Error) {
+			if (err.name !== "NotFoundError") throw err;
+		} else throw err;
+	}
+
+	if (!blob) {
+		throw new HttpError("Not found", { status: 404 });
+	}
 
 	return response(blob.blob, {
 		headers: {
@@ -74,6 +103,29 @@ const serveFile: MatchHandler = async (req, match) => {
 				"text/plain",
 		},
 	});
+};
+
+const updateModule: MatchHandler = async (req, match): Promise<Response> => {
+	const url = new URL(req.url);
+	const { name, version, path = "HEAD" } = match;
+	const pathToRepo = join(config.REPOS, name) + ".git";
+
+	if (path) {
+		throw new HttpError("File path must not be specified when updating.", {
+			status: 400,
+		});
+	}
+
+	await git.pull({
+		fs,
+		http,
+		dir: pathToRepo,
+		gitdir: pathToRepo,
+		ref: version,
+		author: { name: "registrybot" },
+	});
+
+	return Response.redirect(`${url.host}/x/${name}`);
 };
 
 export default path;

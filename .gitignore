@@ -1,2 +1,4 @@
 .env
 repos_test
+coverage
+lcov.info

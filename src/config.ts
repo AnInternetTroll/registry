@@ -1,4 +1,4 @@
-import { log, parseArgs, parseFlags, praseDotenv } from "../deps.ts";
+import { parseArgs, parseFlags, praseDotenv } from "../deps.ts";
 
 interface IConfig {
 	REPOS: string;
@@ -6,8 +6,6 @@ interface IConfig {
 	HOSTNAME: string;
 	LOG_LEVEL: "NOTSET" | "DEBUG" | "INFO" | "WARNING" | "ERROR" | "CRITICAL";
 }
-
-const logLevels = ["NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
 let flags: parseArgs = {
 	_: [],
