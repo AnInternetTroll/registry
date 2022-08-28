@@ -1,4 +1,4 @@
 .env
-repos_test
+repos_*
 coverage
 lcov.info

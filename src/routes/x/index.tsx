@@ -1,13 +1,30 @@
-import { fs, git, http, join } from "../../../deps.ts";
+/** @jsx h */
+import { fs, git, h, http, join, MatchHandler } from "../../../deps.ts";
 import config from "../../config.ts";
 import { HttpError } from "../../utils/http_error.ts";
 import { parseBody } from "../../utils/parse_body.ts";
 import { response } from "../../utils/response.ts";
+import Index from "../../pages/x/index.tsx";
+import { render } from "../../utils/render.tsx";
+import { getPathToRepo } from "../../utils/get_path_to_repo.ts";
 
-export default function index(req: Request): Response | Promise<Response> {
+export const index: MatchHandler = async (
+	req,
+	match,
+): Promise<Response> => {
 	if (req.method === "POST") return newModule(req);
-	else return response("Todo", { status: 404 });
-}
+	else {
+		const modules: string[] = [];
+		for await (const module of Deno.readDir(config.REPOS)) {
+			const name = module.name.split(".git").at(0)!;
+			modules.push(
+				name,
+			);
+		}
+
+		return render(() => <Index modules={modules} />, req, match);
+	}
+};
 
 async function newModule(req: Request): Promise<Response> {
 	const body = await parseBody(req);
@@ -35,9 +52,19 @@ async function newModule(req: Request): Promise<Response> {
 		noCheckout: true,
 	});
 
-	return response("Module saved.", {
-		status: 200,
-	});
+	if (req.headers.get("Accept")?.includes("html")) {
+		const url = new URL(req.url);
+		return new Response(null, {
+			headers: {
+				"Location": `${url.protocol}//${url.host}/x/${repoName}`,
+			},
+			status: 303,
+		});
+	} else {
+		return response("Module saved.", {
+			status: 200,
+		});
+	}
 }
 
 interface PostBody {
@@ -55,3 +82,5 @@ function typeCheckBody(body: unknown): body is PostBody {
 
 	return true;
 }
+
+export default index;

@@ -1,8 +1,10 @@
 import {
 	afterAll,
+	assertEquals,
 	beforeAll,
-} from "https://deno.land/std@0.153.0/testing/bdd.ts";
-import { assertEquals, describe, it } from "../deps_testing.ts";
+	describe,
+	it,
+} from "../deps_testing.ts";
 import config from "../src/config.ts";
 import { handler } from "../src/mod.ts";
 
@@ -106,7 +108,7 @@ export const VERSION = "0.153.0";
 		);
 
 		assertEquals(
-			"http://" + response.headers.get("Location"),
+			response.headers.get("Location"),
 			`${BASE_URL}/x/${name}@HEAD/version.ts`,
 		);
 	});
@@ -133,11 +135,11 @@ export const VERSION = "0.153.0";
 		const response = await handler(request);
 		assertEquals(
 			response.status,
-			302,
+			307,
 		);
 
 		assertEquals(
-			"http://" + response.headers.get("Location"),
+			response.headers.get("Location"),
 			`${BASE_URL}/x/${name}`,
 		);
 	});

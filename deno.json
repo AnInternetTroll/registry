@@ -10,8 +10,9 @@
 		}
 	},
 	"tasks": {
-		"start": "deno run --allow-net --allow-write=./repos_main --allow-read=./repos_main --no-prompt --allow-env --watch",
+		"start": "#!/usr/bin/env -S deno run --allow-net --allow-write=./repos_main --allow-read=. --no-prompt --allow-env main.ts",
+		"dev": "#!/usr/bin/env -S deno run --allow-net --allow-write=./repos_main --allow-read=. --no-prompt --allow-env --watch main.ts",
 		"check": "deno fmt --check && deno lint && deno check main.ts",
-		"test": "deno test --allow-read=./repos_test,.env.example --allow-write=./repos_test --allow-net=github.com --allow-env --coverage=coverage -- --env-file=.env.example && deno coverage coverage --lcov > lcov.info"
+		"test": "deno test --allow-read=./repos_test,.env.example --allow-write=./repos_test --allow-net=github.com --allow-env --coverage=coverage --no-check -- --env-file=.env.example && deno coverage coverage --lcov > lcov.info"
 	}
 }
