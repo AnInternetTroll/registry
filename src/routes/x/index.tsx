@@ -15,11 +15,15 @@ export const index: MatchHandler = async (
 	if (req.method === "POST") return newModule(req);
 	else {
 		const modules: string[] = [];
-		for await (const module of Deno.readDir(config.REPOS)) {
-			const name = module.name.split(".git").at(0)!;
-			modules.push(
-				name,
-			);
+		try {
+			for await (const module of Deno.readDir(config.REPOS)) {
+				const name = module.name.split(".git").at(0)!;
+				modules.push(
+					name,
+				);
+			}
+		} catch (err) {
+			if (!(err instanceof Deno.errors.NotFound)) throw err;
 		}
 
 		return render(() => <Index modules={modules} />, req, match);

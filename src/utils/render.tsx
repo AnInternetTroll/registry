@@ -82,7 +82,7 @@ const App = (
 					</h1>
 
 					<form action="/set_cookie">
-						<input name="name" value="raw" hidden={true} />
+						<input name="name" value="raw" type="hidden" />
 						<input name="value" value={!raw} type="hidden" />
 						<button type="submit">
 							Toggle raw mode
@@ -98,7 +98,7 @@ const App = (
 
 					{
 						/* <form action="/set_cookie">
-						<input name="name" value="theme" hidden={true} />
+						<input name="name" value="theme" type="hidden" />
 						<input
 							name="value"
 							value={theme === "light" ? "dark" : "light"}
